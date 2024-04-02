@@ -1,242 +1,259 @@
 module abb_m
+    use uuid_module
     use matrix_m
     implicit none
-    private
-
-    type :: Node_t
-        integer :: value
-        type(Node_t), pointer :: right => null()
-        type(Node_t), pointer :: left => null()
-        type(matrix_t) arbol_matriz=matrix_t()
-    end type Node_t
-
+    type :: nodoabb
+        integer :: valor
+        type(matrix_t):: matriz
+        type(nodoabb), pointer :: derecha => null()
+        type(nodoabb), pointer :: izquierda => null() 
+        end type nodoabb
     type, public :: abb
-        type(Node_t), pointer :: root => null()
-
+        type(nodoabb), pointer :: raiz => null()
+   
     contains
-        procedure :: insert
+        procedure :: iniciar_m
+        procedure :: graficar_m
+        procedure :: insertbb
         procedure :: delete
-        procedure :: preorder
-        procedure :: inorder
-        procedure :: posorder
-        procedure :: graph
+        procedure :: preorden
+        procedure :: graficar
     end type abb
+    
+contains
+    subroutine insertbb(self, val,matriz)
+        
+        class(abb), intent(inout) :: self
+        type(matrix_t),intent(in) :: matriz
+        integer, intent(in) :: val
+        if(.not. associated(self%raiz)) then
+            allocate(self%raiz)
+            self%raiz%valor=val
+            self%raiz%matriz=matriz
+        else
+            call insertRec(self%raiz, val,matriz)
+        end if
+    end subroutine insertbb
 
-contains    
-    !Subrutinas del tipo abb
-    subroutine insert(self, val)
+    subroutine iniciar_m(self)
+        class(abb), intent(inout) :: self
+        call self%raiz%matriz%init()
+    end subroutine iniciar_m
+
+    function buscar_m(id) result(mbuscar)
+        type(matrix_t),pointer :: mbuscar
+        integer, intent(in) :: id
+        type(nodoabb), pointer ::raiz
+        mbuscar=>buscar(raiz,id)
+        
+    end function buscar_m
+
+    subroutine graficar_m(self,id)
+        class(abb), intent(inout) :: self
+        integer, intent(in) :: id
+        print *, "funcion graf"
+        call graficar_mRec(self%raiz,id)
+        
+    end subroutine graficar_m
+
+    recursive subroutine graficar_mRec(raiz2,id) 
+    integer, intent(in) :: id
+    type(nodoabb), pointer, intent(in) :: raiz2
+        print *, "no nula"
+        if(id < raiz2%valor) then
+            call graficar_mRec(raiz2%izquierda,id)
+            print *, "funcion iz"
+        else if(id > raiz2%valor) then
+            call graficar_mRec(raiz2%derecha,id)
+            print *, "funcion der"
+        else
+            print *,"else graf", raiz2%valor
+                !call raiz2%matriz%init()
+                call raiz2%matriz%create_dot()
+
+                
+         end if
+      
+ 
+
+
+    end  subroutine graficar_mRec
+
+    recursive function buscar(raiz,id) result(mresult)
+        integer, intent(in) :: id
+        type(matrix_t),pointer :: mresult
+        type(nodoabb), pointer, intent(in) :: raiz
+
+            if(id < raiz%valor) then
+                mresult=> buscar(raiz%izquierda,id)
+                return
+            
+            else if(id > raiz%valor) then
+                mresult=> buscar(raiz%derecha,id)
+                return
+            else
+                mresult=> raiz%matriz
+                return
+                
+            end if
+      
+
+        end  function buscar
+
+    subroutine delete(self, val)
         class(abb), intent(inout) :: self
         integer, intent(in) :: val
 
-        if (.not. associated(self%root)) then
-            allocate(self%root)
-            self%root%value = val
-        else
-            call insertRec(self%root, val)
-        end if
-    end subroutine insert
-    recursive subroutine insertRec(root, val)
-        type(Node_t), pointer, intent(inout) :: root
-        integer, intent(in) :: val
+        self%raiz => deleteRec(self%raiz, val)
+    end subroutine delete
+
+    subroutine preorden(self)
+        class(abb), intent(in) :: self
         
-        if (val < root%value) then
-            if (.not. associated(root%left)) then
-                allocate(root%left)
-                root%left%value = val
+        call preordenRec(self%raiz)
+    end subroutine preorden
+
+    subroutine graficar(self)
+        class(abb), intent(in) :: self
+        integer :: io
+        integer :: i
+        character(len=100) :: comando
+
+        io = 1
+        open(newunit=io, file="./abb_tree.dot")
+        comando = "dot -Tpng ./abb_tree.dot -o ./abb_tree.png"
+
+        write(io, *) "digraph G {"
+            !Graficar
+        if(associated(self%raiz)) then
+            call imprimirRec_abb(self%raiz, generate_uuid(), io)
+        end if
+        write(io, *) "}"
+        close(io)
+
+        call execute_command_line(comando, exitstat=i)
+
+        if(i == 1) then
+            print *, "Error al momento de crear la imagen"
+        else
+            print *, "La imagen fue generada exitosamente"
+        end if
+    end subroutine graficar
+
+    recursive subroutine insertRec(raiz, val,mtc)
+        type(nodoabb), pointer, intent(inout) :: raiz
+        type(matrix_t),intent(in) :: mtc
+
+        integer, intent(in) :: val
+       
+            
+        
+         if(val < raiz%valor) then 
+            if(.not. associated(raiz%izquierda)) then
+                allocate(raiz%izquierda)
+                raiz%izquierda%valor=val
+                raiz%izquierda%matriz=mtc
             else
-                call insertRec(root%left, val)
+                call insertRec(raiz%izquierda, val, mtc)
             end if
-        else if (val > root%value) then
-            if (.not. associated(root%right)) then
-                allocate(root%right)
-                root%right%value = val
+
+        else if(val > raiz%valor) then
+            if(.not. associated(raiz%derecha)) then
+                allocate(raiz%derecha)
+                raiz%derecha%valor=val
+                raiz%derecha%matriz=mtc
             else
-                call insertRec(root%right, val)
+            call insertRec(raiz%derecha, val,mtc)
             end if
         end if
     end subroutine insertRec
 
-    subroutine delete(self, val)
-        class(abb), intent(inout) :: self
-        integer, intent(inout) :: val
-    
-        self%root => deleteRec(self%root, val)
-    end subroutine delete
-    recursive function deleteRec(root, value) result(res)
-        type(Node_t), pointer :: root
-        integer, intent(in) :: value
-        type(Node_t), pointer :: res
-        type(Node_t), pointer :: temp
+    recursive function deleteRec(raiz, val) result(res)
+        type(nodoabb), pointer :: raiz
+        integer, intent(in) :: val
 
-        if (.not. associated(root)) then
-            res => root
+        type(nodoabb), pointer :: temp
+        type(nodoabb), pointer :: res 
+        
+        if(.not. associated(raiz)) then
+            res => raiz
             return
         end if
 
-        if (value < root%value) then
-            root%left => deleteRec(root%left, value)
-        else if (value > root%value) then
-            root%right => deleteRec(root%right, value)
+        if(val < raiz%valor) then
+            raiz%izquierda => deleteRec(raiz%izquierda, val)
+        
+        else if(val > raiz%valor) then
+            raiz%derecha => deleteRec(raiz%derecha, val)
+
         else
-            if (.not. associated(root%left)) then
-                temp => root%right
-                deallocate(root)
+            if(.not. associated(raiz%izquierda)) then
+                temp => raiz%derecha
+                deallocate(raiz)
                 res => temp
                 return
-            else if (.not. associated(root%right)) then
-                temp => root%left
-                deallocate(root)
+
+            else if (.not. associated(raiz%derecha)) then
+                temp => raiz%izquierda
+                deallocate(raiz)
                 res => temp
                 return
+            
             else
-                call getMajorOfMinors(root%left, temp)
-                root%value = temp%value
-                root%left => deleteRec(root%left, temp%value)
+                call obtenerMayorDeMenores(raiz%izquierda, temp)
+                raiz%valor = temp%valor
+                raiz%izquierda => deleteRec(raiz%izquierda, temp%valor)
             end if
         end if
 
-        res => root
+        res => raiz
     end function deleteRec
-    recursive subroutine getMajorOfMinors(root, major)
-        type(Node_t), pointer :: root, major
-        if (associated(root%right)) then
-            call getMajorOfMinors(root%right, major)
+
+    recursive subroutine obtenerMayorDeMenores(raiz, mayor)
+        type(nodoabb), pointer :: raiz, mayor
+        if(associated(raiz%derecha)) then
+            call obtenerMayorDeMenores(raiz%derecha, mayor)
         else
-            major => root
+            mayor => raiz
         end if
-    end subroutine getMajorOfMinors
+    end subroutine obtenerMayorDeMenores
 
-    subroutine preorder(self)
-        class(abb), intent(in) :: self
-        
-        call preorderRec(self%root)
-        write(*, '()')
-    end subroutine preorder
-    recursive subroutine preorderRec(root)
-        type(Node_t), pointer, intent(in) :: root
+    recursive subroutine preordenRec(raiz)
+        type(nodoabb), pointer, intent(in) :: raiz
 
-        if(associated(root)) then
-            ! RAIZ - IZQ - DER
-            write(*, '(I0 A)', advance='no') root%value, " - "
-            call preorderRec(root%left)
-            call preorderRec(root%right)
+        if(associated(raiz)) then
+            print *, raiz%valor
+            call preordenRec(raiz%izquierda)
+            call preordenRec(raiz%derecha)
         end if
-    end subroutine preorderRec
+    end subroutine preordenRec
 
-    subroutine inorder(self)
-        class(abb), intent(in) :: self
-        
-        call inordenRec(self%root)
-        print *, ""
-    end subroutine inorder
-    recursive subroutine inordenRec(root)
-        type(Node_t), pointer, intent(in) :: root
+    recursive subroutine imprimirRec_abb(raiz, nombre, io)
+        type(nodoabb), pointer, intent(in) :: raiz
+        character(len=36), intent(in) :: nombre
+        integer :: io
 
-        if(associated(root)) then
-            ! IZQ - RAIZ - DER
-            call inordenRec(root%left)
-            write(*, '(I0 A)', advance='no') root%value, " - "
-            call inordenRec(root%right)
+        character(len=36) :: derecha
+        character(len=36) :: izquierda
+
+        derecha = generate_uuid()
+        izquierda = generate_uuid()
+
+        if(associated(raiz)) then
+            !"nodoabb_uuid"[Label="1"]
+            write(io, *) '"nodoabb'//nombre//'"[label= "', raiz%valor, '"]'
+
+            if(associated(raiz%izquierda)) then
+                !"nodoabb_uuid"->"nodoabb_uuidHijoIzquierdo"
+                write(io, *) '"nodoabb'//nombre//'"->"nodoabb'//izquierda//'"'
+            end if
+
+            if(associated(raiz%derecha)) then
+                !"nodoabb_uuid"->"nodoabb_uuidHijoDerecho"
+                write(io, *) '"nodoabb'//nombre//'"->"nodoabb'//derecha//'"'
+            end if
+            call imprimirRec_abb(raiz%izquierda, izquierda, io)
+            call imprimirRec_abb(raiz%derecha, derecha, io)
         end if
-    end subroutine inordenRec
-
-    subroutine posorder(self)
-        class(abb), intent(in) :: self
-        
-        call posordenRec(self%root)
-        print *, ""
-    end subroutine posorder
-    recursive subroutine posordenRec(root)
-        type(Node_t), pointer, intent(in) :: root
-
-        if(associated(root)) then
-            ! IZQ - DER - RAIZ
-            call posordenRec(root%left)
-            call posordenRec(root%right)
-            write(*, '(I0 A)', advance='no') root%value, " - "
-        end if
-    end subroutine posordenRec
-
-    subroutine graph(self, filename)
-        class(abb), intent(in) :: self
-        character(len=*), intent(in) :: filename
-        character(len=:), allocatable :: dotStructure
-        character(len=:), allocatable :: createNodes
-        character(len=:), allocatable :: linkNodes
-        
-        createNodes = ''
-        linkNodes = ''
-
-        dotStructure = "digraph G{" // new_line('a')
-        dotStructure = dotStructure // "node [shape=circle];" // new_line('a')
-
-        if (associated(self%root)) then
-            call RoamTree(self%root, createNodes, linkNodes)
-        end if
-        
-        dotStructure = dotStructure // trim(createNodes) // trim(linkNodes) // "}" // new_line('a')
-        call write_dot(filename, dotStructure)
-        print *, "Archivo actualizado existosamente."
-    end subroutine graph
-    recursive subroutine RoamTree(current, createNodes, linkNodes)
-        type(Node_t), pointer :: current
-        character(len=:), allocatable, intent(inout) :: createNodes, linkNodes
-        character(len=20) :: address, str_value
-
-        if (associated(current)) then
-            ! SE OBTIENE INFORMACION DEL NODO ACTUAL
-          address = get_address_memory(current)
-          write(str_value, '(I0)') current%Value
-          createNodes = createNodes // '"' // trim(address) // '"' // '[label="' // trim(str_value) // '"];' // new_line('a')
-          ! VIAJAMOS A LA SUBRAMA IZQ
-          if (associated(current%Left)) then
-            linkNodes = linkNodes // '"' // trim(address) // '"' // " -> "
-            address = get_address_memory(current%Left)
-            linkNodes = linkNodes // '"' // trim(address) // '" ' &
-                      // '[label = "L"];' // new_line('a')
-    
-          end if
-          ! VIAJAMOS A LA SUBRAMA DER
-          if (associated(current%Right)) then
-            address = get_address_memory(current)
-            linkNodes = linkNodes // '"' // trim(address) // '"' // " -> "
-            address = get_address_memory(current%Right)
-            linkNodes = linkNodes // '"' // trim(address) // '" ' &
-                      // '[label = "R"];' // new_line('a')
-          end if
-    
-          call RoamTree(current%Left, createNodes, linkNodes)
-          call RoamTree(current%Right, createNodes, linkNodes)
-        end if
-    end subroutine RoamTree
-    subroutine write_dot(filename, code)
-        character(len=*), intent(in) :: code, filename
-        character(len=:), allocatable :: dot_filename, png_filename
-        
-        ! Agregar extensiones
-        dot_filename = trim(filename) // ".dot"
-        png_filename = trim(filename) // ".png"
-        
-        open(10, file="graph/"//dot_filename, status='replace', action='write')
-        write(10, '(A)') trim(code)
-        close(10)
-
-        ! Genera la imagen PNG
-        call system("dot -Tpng graph/"// dot_filename //" -o graph/" // png_filename)
-    end subroutine write_dot
-
-    function get_address_memory(node) result(address)
-        !class(matrix_t), intent(in) :: self
-        type(Node_t), pointer :: node
-        character(len=20) :: address
-        ! integer 8
-        integer*8 :: i
-    
-        i = loc(node) ! get the address of x
-        ! convert the address to string
-        write(address, 10) i 
-        10 format(I0)
-    
-    end function get_address_memory
-
+    end subroutine imprimirRec_abb
 end module abb_m

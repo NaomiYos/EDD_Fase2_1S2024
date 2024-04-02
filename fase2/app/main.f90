@@ -1,13 +1,16 @@
 
 program main
   use :: json_module
-  
-  use abb_m
+ use ::abb_m
+ use :: matrix_m
   implicit none
-  type(matrix_t) :: mtx
+  
+  type(matrix_t) :: matrizcapa
+  type(abb) :: arbolb
+  type(abb) :: arbolimg
   integer :: opcion,opcion2,opcion_cliente
-  character(len=20):: username, password,usernameC, passwordC,dpi
-  call mtx%init()
+  character(len=20):: username, password,usernameC, passwordC,dpi,archivo
+
   do
     print *, 'Selecciona una opcion:'
       print *, '1. Inicio de sesion como administrador'
@@ -60,13 +63,17 @@ program main
         read *, opcion_cliente
         select case (opcion_cliente)
         case (1)
-          call capas()
+        print *, "5.Volver"
+        read *, archivo
+          call capas(archivo)
         case (2)
           call imagen()
         case(3)
           call lectoralbum()
         case(4)
-          call mtx%create_dot()
+          !call arbolb%preorden()
+          !call arbolb%graficar()
+          
         case(5)
           exit
 
@@ -115,17 +122,23 @@ subroutine lclientes()
 
   
 end subroutine lclientes
-subroutine capas()
+
+subroutine capas(archivo_capas)
   implicit none
   type(json_file) :: json 
   type(json_value), pointer :: layer, pixel,datos_capa,pixel_attribute,attribute_capa,pixelpointer
   type(json_core) :: jsonc 
+  character(len=20), intent(inout) ::archivo_capas
   character(:), allocatable :: color
   integer :: i,psize,fila,columna,id_capa,j,size
   logical :: found 
+  
+ 
+  
+
 
   call json%initialize()
-  call json%load(filename="imagenMario.json") 
+  call json%load(filename=archivo_capas) 
   call json%info('', n_children=size) 
   call json%get_core(jsonc) 
   call json%get('', layer, found) 
@@ -135,13 +148,14 @@ subroutine capas()
     call jsonc%get_child(datos_capa, 'id_capa', attribute_capa, found=found)
     if(found) call jsonc%get(attribute_capa, id_capa)
     print *, "id: ", id_capa
-
+   
+    call matrizcapa%init()
+    print *, "id insertadp"
     call jsonc%get_child(datos_capa, 'pixeles', attribute_capa, found=found)
     if(found) then
       call jsonc%info(attribute_capa, n_children=psize)
       print *,"Pixeles size: "
       print *, psize
-
       do j = 1, psize
         call jsonc%get_child(attribute_capa,j,pixel,found=found)
         if(found) then
@@ -149,37 +163,33 @@ subroutine capas()
 
           if (found) then
             call jsonc%get(pixel_attribute,fila )
-            !print*,"Fila: "
-           ! print *, fila
           end if
           call jsonc%get_child(pixel,"columna", pixel_attribute,found=found)
           if (found) then
             call jsonc%get(pixel_attribute,columna )
-            !print*,"Columna: "
-            !print *, columna
           end if
           call jsonc%get_child(pixel,"color", pixel_attribute,found=found)
           if (found) then
             call jsonc%get(pixel_attribute,color)
-            !print*,"color: "
-            !print *, color
-           ! print*,"------"
-            !call mtx%add(fila,columna,color)
-            !call mtx%print()
+            
           end if
+        print *,"id caa", id_capa
+        call matrizcapa%addm(fila,columna,color)
+        !call matrizcapa%create_dot()
         end if
       end do
       end if
-     
+     call arbolb%insert(id_capa,matrizcapa)
       
 
 
     
-
   end do  
+  
+  !call arbolb%graficar()
   call json%destroy()
 
-  
+ 
 end subroutine capas
 
 subroutine imagen()
@@ -193,6 +203,9 @@ subroutine imagen()
   integer :: i,size,size_c,j,id_img,vcapa
   logical :: found 
   integer, dimension (:), allocatable :: darray 
+  type(matrix_t) :: mtxcapa
+  
+
   call json%initialize()
   call json%load(filename="imagenes.json") 
   call json%info('', n_children=size) 
@@ -213,6 +226,7 @@ subroutine imagen()
       call jsonc%get(capa,vcapa)
      ! print *,vcapa
       darray(j)=vcapa
+      mtxcapa= buscar_m(vcapa) 
       
     end do
       print *,darray
@@ -253,6 +267,7 @@ subroutine lectoralbum()
       call jsonc%get(imag,vimage)
      ! print *,vcapa
       images(j)=vimage
+
       
     end do
       print *,images

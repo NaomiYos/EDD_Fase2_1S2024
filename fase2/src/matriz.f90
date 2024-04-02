@@ -1,6 +1,7 @@
 module matrix_m
     use header_m
     implicit none
+    
   
     type matrix_t
       type(header_t), pointer :: col => null()
@@ -8,7 +9,7 @@ module matrix_m
       !type(graph_t), pointer :: graph => null()
       contains
       procedure :: init
-      procedure :: add
+      procedure :: addm
       procedure :: print
       procedure, private :: verify_column
       procedure, private :: move_first_lr_pointers
@@ -41,8 +42,8 @@ module matrix_m
       self%row => row_hdr
       self%col => col_hdr
     end subroutine init
-  
-    subroutine add(self, row, col, value)
+   
+    subroutine addm(self, row, col, value)
       class(matrix_t), intent(inout) :: self
       integer, intent(in) :: row, col
       character(:), allocatable :: value
@@ -66,7 +67,7 @@ module matrix_m
       call self%verify_column(row_hdr_n, new_mtx_n)
       call self%verify_row(col_hdr_n, new_mtx_n)
   
-    end subroutine add
+    end subroutine addm
   
     subroutine verify_column(self, row_hdr_n, new_mtx_n)
       class(matrix_t), intent(inout) :: self
@@ -432,8 +433,8 @@ module matrix_m
       write(10, '(A)') trim(code)
       close(10)
          ! Generar el archivo PNG utilizando Graphviz
-      call system('dot -Gnslimit=2 -Tpng ' // "graph.dot"// ' -o ' // "mario"// '.png')
+      call system('dot -Gnslimit=2 -Tpng ' // "graph.dot"// ' -o ' // "nuevo"// '.png')
         
-      print *, 'Graphviz file generated: ', "mario" // '.png'
+      print *, 'Graphviz file generated: ', "nuevo" // '.png'
     end subroutine write_dot
   end module matrix_m
