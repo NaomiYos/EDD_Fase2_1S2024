@@ -1,0 +1,33 @@
+[
+    {
+      "id": 1,
+      "departamento": "Guatema",
+      "direccion": "3era calle zona 1",
+      "password": "g45e"
+    },
+    {
+      "id": 2,
+      "departamento": "chimal",
+      "direccion": "5ta calle zona 1",
+      "password": "ch65"
+    },
+    {
+      "id": 3,
+      "departamento": "sacatepequez",
+      "direccion": "4ta calle zona 1",
+      "password": "ch65"
+    },
+    {
+        "id": 4,
+        "departamento": "peten",
+        "direccion": "1era calle zona 1",
+        "password": "ch65"
+    },
+    {
+        "id": 5,
+        "departamento": "escuintla",
+        "direccion": "5ta avenida zona 7",
+        "password": "ch65"
+      
+    }
+  ]

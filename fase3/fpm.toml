@@ -1,0 +1,20 @@
+name = "fase3"
+version = "0.1.0"
+license = "license"
+author = "NaomiYos"
+maintainer = "3106841100407@ingenieria.usac.edu.gt"
+copyright = "Copyright 2024, NaomiYos"
+[build]
+auto-executables = true
+auto-tests = true
+auto-examples = true
+module-naming = false
+[install]
+library = false
+[fortran]
+implicit-typing = false
+implicit-external = false
+source-form = "free"
+
+[dependencies]
+json-fortran = {git = "https://github.com/jacobwilliams/json-fortran"}

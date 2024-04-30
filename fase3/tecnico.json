@@ -1,0 +1,38 @@
+[
+  {
+    "dpi": "3024645300102",
+    "nombre": "Kevin ",
+    "apellido": "Sotoj",
+    "direccion": "3era calle zona 1",
+    "telefono": "78685530"
+  },
+  {
+    "dpi":"3106111110102",
+    "nombre": "Naomi ",
+    "apellido": "Yos",
+    "direccion": "5ta calle zona 1",
+    "telefono": "8763212"
+  },
+  {
+    "dpi": "1234567891011",
+    "nombre": "Rashel ",
+    "apellido": "Cujcuj ",
+    "direccion": "4ta calle zona 1",
+    "telefono": "89063212"
+  },
+  {
+    "dpi":" 9987654324534",
+    "nombre": "Allice",
+    "apellido": "Cujcuj ",
+    "direccion": "4ta avenida zona 1",
+    "telefono": "60163212"
+  },
+  {
+    "dpi": "1234567890987",
+    "nombre": "André",
+    "apellido": "Yos",
+    "direccion": "1era avenida zona 1",
+    "telefono": "5763212"
+    
+  }
+]
